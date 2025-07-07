@@ -9,10 +9,21 @@ import aiRoutes from './routes/aiRoutes.js';
 import cors from "cors";
 
 
+// ...existing code...
+const allowedOrigins = process.env.CLIENT_URL.split(',');
+
 app.use(cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
+// ...existing code...
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
