@@ -11,7 +11,7 @@ import { generateResult } from './services/aiService.js';
 
 const server=http.createServer(app);
 
-// ...existing code...
+
 const allowedOrigins = process.env.CLIENT_URL.split(',');
 
 const io = new SocketIoServer(server, {
@@ -19,7 +19,7 @@ const io = new SocketIoServer(server, {
         origin: function(origin, callback) {
             if (!origin) return callback(null, true);
             if (allowedOrigins.includes(origin)) {
-                return callback(null, true);
+                return callback(null, origin); // <-- return the origin string
             } else {
                 return callback(new Error('Not allowed by CORS'));
             }
@@ -28,7 +28,6 @@ const io = new SocketIoServer(server, {
         credentials: true,
     }
 });
-// ...existing code...
 io.use(async(socket, next) => {
     try {
         const token = socket.handshake.auth?.token || socket.handshake.headers.authorization?.split(' ')[ 1 ];
