@@ -9,13 +9,10 @@ import aiRoutes from './routes/aiRoutes.js';
 import cors from "cors";
 
 
-const cors = require('cors');
-
 app.use(cors({
-  origin: process.env.CLIENT_URL, // your Vercel frontend URL
-  credentials: true // if you’re sending cookies or auth headers
+    origin: process.env.CLIENT_URL,
+    credentials: true
 }));
-
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
