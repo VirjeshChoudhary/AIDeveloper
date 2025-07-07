@@ -125,10 +125,10 @@ const Projects = () => {
       }
       // Only mount and set file tree if messageObject exists and has fileTree
       if (messageObject && messageObject.fileTree) {
-    webContainer?.mount(messageObject.fileTree);
-    setFileTree(messageObject.fileTree);
-    saveFileTree(messageObject.fileTree); // <-- ADD THIS LINE
-  }
+        webContainer?.mount(messageObject.fileTree);
+        setFileTree(messageObject.fileTree);
+        saveFileTree(messageObject.fileTree); // <-- ADD THIS LINE
+      }
       setMessages((prevMessages) => [...prevMessages, data]);
       scrollToBottom();
     });
@@ -325,6 +325,7 @@ const Projects = () => {
             <div className="actions flex gap-2">
               <button
                 onClick={async () => {
+                  if (!webContainer) return; // Prevent error if not ready
                   await webContainer.mount(fileTree);
 
                   const installProcess = await webContainer.spawn("npm", [
@@ -352,6 +353,7 @@ const Projects = () => {
                   });
                 }}
                 className="p-2 px-4 bg-slate-300 text-white"
+                disabled={!webContainer}
               >
                 run
               </button>
@@ -359,40 +361,40 @@ const Projects = () => {
           </div>
           <div className="bottom flex flex-grow max-w-full shrink overflow-hidden">
             {fileTree[currentFile] && fileTree[currentFile].file && (
-  <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50">
-    <pre className="hljs h-full">
-      <code
-        className="hljs h-full outline-none"
-        contentEditable
-        suppressContentEditableWarning
-        onBlur={(e) => {
-          const updatedContent = e.target.innerText;
-          const ft = {
-            ...fileTree,
-            [currentFile]: {
-              file: {
-                contents: updatedContent,
-              },
-            },
-          };
-          setFileTree(ft);
-          saveFileTree(ft);
-        }}
-        dangerouslySetInnerHTML={{
-          __html: hljs.highlight(
-            "javascript",
-            fileTree[currentFile].file.contents
-          ).value,
-        }}
-        style={{
-          whiteSpace: "pre-wrap",
-          paddingBottom: "25rem",
-          counterSet: "line-numbering",
-        }}
-      />
-    </pre>
-  </div>
-)}
+              <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50">
+                <pre className="hljs h-full">
+                  <code
+                    className="hljs h-full outline-none"
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={(e) => {
+                      const updatedContent = e.target.innerText;
+                      const ft = {
+                        ...fileTree,
+                        [currentFile]: {
+                          file: {
+                            contents: updatedContent,
+                          },
+                        },
+                      };
+                      setFileTree(ft);
+                      saveFileTree(ft);
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html: hljs.highlight(
+                        "javascript",
+                        fileTree[currentFile].file.contents
+                      ).value,
+                    }}
+                    style={{
+                      whiteSpace: "pre-wrap",
+                      paddingBottom: "25rem",
+                      counterSet: "line-numbering",
+                    }}
+                  />
+                </pre>
+              </div>
+            )}
           </div>
         </div>
         {iframeUrl && webContainer && (
