@@ -1,7 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 const app=express();
-import dbConnection from "./db/db.js"
+import dbConnection from "./db/db.js";
 import morgan from "morgan";
 import userRoutes from './routes/userRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
@@ -37,6 +37,8 @@ app.use('/ai',aiRoutes);
 
 app.get('/',(req,res)=>{
     res.json('hii');
-})
+});
+
+console.log("hihi");
 
 export default app;
