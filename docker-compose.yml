@@ -12,7 +12,7 @@ services:
       - mongo
 
   frontend:
-    build: ./fontend
+    build: ./frontend
     container_name: frontend
     ports:
       - "5173:5173"
