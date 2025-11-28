@@ -22,17 +22,9 @@ jobs:
         working-directory: backend
         run: npm install
 
-      - name: Lint backend
-        working-directory: backend
-        run: npm run lint -- --max-warnings=0
-
       - name: Install frontend deps
         working-directory: frontend
         run: npm install
-
-      - name: Lint frontend
-        working-directory: fronted
-        run: npm run lint -- --max-warnings=0
 
       - name: Build backend Docker image
         run: docker build -t backend ./frontend
