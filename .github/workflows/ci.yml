@@ -19,7 +19,7 @@ jobs:
           node-version: 22
 
       - name: Install backend deps
-        working-directory: server
+        working-directory: backend
         run: npm ci
 
       - name: Lint backend
@@ -27,15 +27,15 @@ jobs:
         run: npm run lint -- --max-warnings=0
 
       - name: Install frontend deps
-        working-directory: client
+        working-directory: fontend
         run: npm ci
 
       - name: Lint frontend
-        working-directory: client
+        working-directory: fronted'
         run: npm run lint -- --max-warnings=0
 
       - name: Build backend Docker image
-        run: docker build -t backend ./server
+        run: docker build -t backend ./frontend
 
       - name: Build frontend Docker image
-        run: docker build -t frontend ./client
+        run: docker build -t frontend ./frontend
