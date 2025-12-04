@@ -46,7 +46,7 @@ io.use(async(socket, next) => {
         socket.user = decoded;
         next();
     } catch (error) {
-        next(error)
+        next(error);
     }
 });
 io.on('connection', (socket) => {
