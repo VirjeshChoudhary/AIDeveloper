@@ -27,7 +27,7 @@ jobs:
         run: npm install
 
       - name: Build backend Docker image
-        run: docker build -t backend ./frontend
+        run: docker build -t backend ./backend
 
       - name: Build frontend Docker image
         run: docker build -t frontend ./frontend
