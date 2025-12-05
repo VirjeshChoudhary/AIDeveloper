@@ -10,19 +10,33 @@ import cors from "cors";
 
 
 // ...existing code...
-const allowedOrigins = process.env.CLIENT_URL.split(',');
+const allowedOrigins = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
 
-app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, origin); // <-- return the origin string
-    } else {
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow non-browser requests like curl / server-to-server (no origin)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, origin);
+      }
+
+      // during local/dev (not production) allow the request to help debugging
+      if (process.env.NODE_ENV !== 'production') {
+        return callback(null, origin);
+      }
+
       return callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 // ...existing code...
 app.use(morgan('dev'));
 app.use(express.json());
