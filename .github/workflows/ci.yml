@@ -20,11 +20,11 @@ jobs:
 
       - name: Install backend deps
         working-directory: backend
-        run: npm install
+        run: npm ci
 
       - name: Install frontend deps
         working-directory: frontend
-        run: npm install
+        run: npm ci
 
       - name: Build backend Docker image
         run: docker build -t backend ./frontend
