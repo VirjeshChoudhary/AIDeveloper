@@ -12,22 +12,32 @@ import { generateResult } from './services/aiService.js';
 const server=http.createServer(app);
 
 
-const allowedOrigins = process.env.CLIENT_URL.split(',');
+// ...existing code...
+const allowedOrigins = (process.env.CLIENT_URL || '').split(',').map(s=>s.trim()).filter(Boolean);
 
 const io = new SocketIoServer(server, {
     cors: {
         origin: function(origin, callback) {
+            // allow non-browser requests (no origin)
             if (!origin) return callback(null, true);
+
+            // allow configured origins
             if (allowedOrigins.includes(origin)) {
-                return callback(null, origin); // <-- return the origin string
-            } else {
-                return callback(new Error('Not allowed by CORS'));
+                return callback(null, origin);
             }
+
+            // during development allow any origin to help debugging
+            if (process.env.NODE_ENV !== 'production') {
+                return callback(null, origin);
+            }
+
+            return callback(new Error('Not allowed by CORS'));
         },
         methods: ["GET", "POST"],
         credentials: true,
     }
 });
+// ...existing code...
 io.use(async(socket, next) => {
     try {
         const token = socket.handshake.auth?.token || socket.handshake.headers.authorization?.split(' ')[ 1 ];
