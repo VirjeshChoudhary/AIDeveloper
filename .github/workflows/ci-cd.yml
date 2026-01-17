@@ -1,0 +1,52 @@
+name: CI-CD Deploy to EC2
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/ec2_key.pem
+          chmod 600 ~/.ssh/ec2_key.pem
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy on EC2
+        run: |
+          ssh -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -e
+            mkdir -p ${{ secrets.APP_DIR }}
+            cd ${{ secrets.APP_DIR }}
+
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/${{ github.repository }} .
+            else
+              git pull origin main
+            fi
+
+            # Create .env with ALL required variables
+            cat > .env << 'ENVEOF'
+          VITE_API_URI=${{ secrets.VITE_API_URI }}
+          MONGOURI=${{ secrets.MONGOURI }}
+          PORT=${{ secrets.PORT }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_EXPIRY=${{ secrets.JWT_EXPIRY }}
+          GOOGLE_AI_KEY=${{ secrets.GOOGLE_AI_KEY }}
+          CLIENT_URL=${{ secrets.CLIENT_URL }}
+          REDIS_HOST=${{ secrets.REDIS_HOST }}
+          REDIS_PORT=${{ secrets.REDIS_PORT }}
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          ENVEOF
+
+            docker compose down
+            docker compose build --no-cache
+            docker compose up -d
+          EOF

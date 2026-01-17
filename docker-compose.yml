@@ -1,38 +1,44 @@
 version: "3.9"
-
 services:
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app-network
+    restart: always
+
   backend:
     build: ./backend
     container_name: backend
     ports:
       - "3000:3000"
     env_file:
-      - ./backend/.env
+      - .env
     depends_on:
       - mongo
+    networks:
+      - app-network
+    restart: always
 
   frontend:
     build:
       context: ./frontend
       args:
-        VITE_API_URI: http://3.110.123.182:3000
+        VITE_API_URI: ${VITE_API_URI}
     container_name: frontend
-    restart: always
     ports:
-      - "5173:5173"
-    env_file:
-      - ./frontend/.env
+      - "80:80"  # Changed from 5173 to 80
     depends_on:
       - backend
-
-  mongo:
-    image: mongo:6
-    container_name: mongo
+    networks:
+      - app-network
     restart: always
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
 
 volumes:
   mongo_data:
+
+networks:
+  app-network:
+    driver: bridge

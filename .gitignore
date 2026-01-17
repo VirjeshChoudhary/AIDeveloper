@@ -1,0 +1,3 @@
+# Root env files (used by docker-compose / CI)
+.env
+.env.*
