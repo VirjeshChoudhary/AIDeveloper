@@ -40,7 +40,16 @@ jobs:
           REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
           ENVEOF
 
-            docker compose down || true
+            # Stop containers and remove them
+            docker compose down
+            
+            # Kill any process using port 80
+            sudo fuser -k 80/tcp || true
+            
+            # Build and start
             docker compose build --no-cache
             docker compose up -d
+            
+            # Show running containers
+            docker compose ps
           EOF
