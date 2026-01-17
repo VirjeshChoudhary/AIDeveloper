@@ -1,11 +1,11 @@
-name: CI-CD Deploy to EC2
+name: CI-CD Build & Deploy to EC2
 
 on:
   push:
     branches: [main]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     environment: prodEnv
 
@@ -13,7 +13,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy on EC2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/aideveloper-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/aideveloper-frontend:latest
+          build-args: |
+            VITE_API_URI=${{ secrets.VITE_API_URI }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to EC2
         run: |
           mkdir -p ~/.ssh
           cat > ~/.ssh/aidevpair.pem << 'KEYEOF'
@@ -25,7 +54,12 @@ jobs:
             set -e
             cd ${{ secrets.APP_DIR }}
             
-            git pull origin main
+            # Login to Docker Hub
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            
+            # Pull latest images
+            docker pull ${{ secrets.DOCKER_USERNAME }}/aideveloper-backend:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/aideveloper-frontend:latest
 
             cat > .env << 'ENVEOF'
           VITE_API_URI=${{ secrets.VITE_API_URI }}
@@ -38,16 +72,13 @@ jobs:
           REDIS_HOST=${{ secrets.REDIS_HOST }}
           REDIS_PORT=${{ secrets.REDIS_PORT }}
           REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
           ENVEOF
 
-            # Stop containers and remove them
+            # Stop and remove old containers
             docker compose down
             
-            # Kill any process using port 80
-            sudo fuser -k 80/tcp || true
-            
-            # Build and start
-            docker compose build --no-cache
+            # Start with pulled images
             docker compose up -d
             
             # Show running containers

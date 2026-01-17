@@ -10,7 +10,7 @@ services:
     restart: always
 
   backend:
-    build: ./backend
+    image: ${DOCKER_USERNAME}/aideveloper-backend:latest
     container_name: backend
     ports:
       - "3000:3000"
@@ -23,13 +23,10 @@ services:
     restart: always
 
   frontend:
-    build:
-      context: ./frontend
-      args:
-        VITE_API_URI: ${VITE_API_URI}
+    image: ${DOCKER_USERNAME}/aideveloper-frontend:latest
     container_name: frontend
     ports:
-      - "80:80"  # Changed from 5173 to 80
+      - "80:80"
     depends_on:
       - backend
     networks:
