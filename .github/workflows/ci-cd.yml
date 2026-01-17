@@ -7,7 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: prodEnv  # Add this line!
+    environment: prodEnv
 
     steps:
       - name: Checkout code
@@ -16,19 +16,16 @@ jobs:
       - name: Deploy on EC2
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/aidevpair.pem
+          cat > ~/.ssh/aidevpair.pem << 'KEYEOF'
+          ${{ secrets.EC2_KEY }}
+          KEYEOF
           chmod 600 ~/.ssh/aidevpair.pem
-
+          
           ssh -i ~/.ssh/aidevpair.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             set -e
-            mkdir -p ${{ secrets.APP_DIR }}
             cd ${{ secrets.APP_DIR }}
-
-            if [ ! -d ".git" ]; then
-              git clone https://github.com/${{ github.repository }} .
-            else
-              git pull origin main
-            fi
+            
+            git pull origin main
 
             cat > .env << 'ENVEOF'
           VITE_API_URI=${{ secrets.VITE_API_URI }}
@@ -43,7 +40,7 @@ jobs:
           REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
           ENVEOF
 
-            docker compose down
+            docker compose down || true
             docker compose build --no-cache
             docker compose up -d
           EOF
