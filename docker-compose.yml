@@ -26,7 +26,10 @@ services:
     image: ${DOCKER_USERNAME}/aideveloper-frontend:latest
     container_name: frontend
     ports:
-      - "3001:80"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - backend
     networks:
